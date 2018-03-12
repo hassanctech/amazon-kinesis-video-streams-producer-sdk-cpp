@@ -26,21 +26,14 @@ echo " Starting to build the Kinesis Video Stream Demo Application
         automake
         m4
         also the gstreamer, gstreamer plugins, yasm, gst-libav and x264.
-        Note - for MacOS High Sierra: Use 
-            brew install autoconf  
-            brew install bison
  "
-# Make confirmation optional for Docker builds
-confirm='Y'
 
-if [[ "$#" < 1 || "$1" != "a" ]]; then
-  echo "
-      Y - Confirm to proceed with build install
-      N - Exit build install "
-  echo -n "Enter selection: "
-  read confirm
-  echo ""
-fi
+echo "
+    Y - Confirm to proceed with build install
+    N - Exit build install "
+echo -n "Enter selection: "
+read confirm
+echo ""
 
 if [[ "$confirm" = "N" || "$confirm" = "n" ]]; then
      exit
@@ -85,8 +78,6 @@ elif [[ "$unamestr" == 'FreeBSD' ]]; then
 elif [[ "$unamestr" == 'Darwin' ]]; then
    PLATFORM='mac'
 fi
-KERNEL_VERSION=`uname -r|cut -f1 -d"."`
-
 
 #--------- build + install libs ---------
 echo "Checking openssl at $DOWNLOADS/local/lib/libssl.a"
@@ -94,12 +85,12 @@ if [ ! -f $DOWNLOADS/local/lib/libssl.a ]; then
   echo "openssl lib not found. Installing"
   if [ ! -f $DOWNLOADS/openssl-1.1.0f.tar.gz ]; then
     cd $DOWNLOADS
-    curl -L "https://www.openssl.org/source/openssl-1.1.0f.tar.gz" -o "openssl-1.1.0f.tar.gz"
+    /usr/bin/curl -L "https://www.openssl.org/source/openssl-1.1.0f.tar.gz" -o "openssl-1.1.0f.tar.gz"
   fi
   cd $DOWNLOADS
   tar -xvf openssl-1.1.0f.tar.gz
   cd $DOWNLOADS/openssl-1.1.0f
-  ./config  --prefix=$DOWNLOADS/local/ --openssldir=$DOWNLOADS/local/
+  ./Configure linux-mips32 --cross-compile-prefix=mipsel-linux-gnu- --prefix=$DOWNLOADS/local/ --openssldir=$DOWNLOADS/local/
   make
   make install
 fi
@@ -109,12 +100,12 @@ if [ ! -f $DOWNLOADS/local/lib/libcurl.a ]; then
   echo "Curl lib not found. Installing"
   if [ ! -f $DOWNLOADS/curl-7.57.0.tar.xz ]; then
     cd $DOWNLOADS
-    curl -L "https://curl.haxx.se/download/curl-7.57.0.tar.xz" -o "curl-7.57.0.tar.xz"
+    /usr/bin/curl -L "https://curl.haxx.se/download/curl-7.57.0.tar.xz" -o "curl-7.57.0.tar.xz"
   fi
   cd $DOWNLOADS
   tar -xvf curl-7.57.0.tar.xz
   cd $DOWNLOADS/curl-7.57.0
-  ./configure --prefix=$DOWNLOADS/local/ --enable-dynamic --disable-rtsp --disable-ldap --without-zlib --with-ssl=$DOWNLOADS/local/ --with-ca-bundle=/etc/ssl/cert.pem
+  ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/ --enable-dynamic --disable-rtsp --disable-ldap --without-zlib --with-ssl=$DOWNLOADS/local/ --with-ca-bundle=/etc/ssl/cert.pem
   make
   make install
 fi
@@ -125,12 +116,12 @@ if [ ! -f $DOWNLOADS/local/lib/liblog4cplus.dylib ]; then
     echo "log4cplus lib not found. Installing"
     if [ ! -f $DOWNLOADS/log4cplus-1.2.0.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://versaweb.dl.sourceforge.net/project/log4cplus/log4cplus-stable/1.2.0/log4cplus-1.2.0.tar.xz" -o "log4cplus-1.2.0.tar.xz"
+      /usr/bin/curl -L "https://versaweb.dl.sourceforge.net/project/log4cplus/log4cplus-stable/1.2.0/log4cplus-1.2.0.tar.xz" -o "log4cplus-1.2.0.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf log4cplus-1.2.0.tar.xz
     cd $DOWNLOADS/log4cplus-1.2.0
-    ./configure --prefix=$DOWNLOADS/local/
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu CXXFLAGS="-std=gnu++14" --prefix=$DOWNLOADS/local/
     make
     make install
   fi
@@ -142,17 +133,16 @@ if [ ! -f $DOWNLOADS/local/lib/libgettextlib.dylib ]; then
    echo "gettext lib not found. Installing"
    if [ ! -f $DOWNLOADS/gettext-0.19.8.tar.xz ]; then
      cd $DOWNLOADS
-     curl -L "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.tar.xz" -o "gettext-0.19.8.tar.xz"
+     /usr/bin/curl -L "http://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.tar.xz" -o "gettext-0.19.8.tar.xz"
    fi
    cd $DOWNLOADS
    tar -xvf gettext-0.19.8.tar.xz
    cd $DOWNLOADS/gettext-0.19.8
-   ./configure --prefix=$DOWNLOADS/local/
+   ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/
    make
    make install
  fi
 fi
-
 
 echo "Checking libffi at $DOWNLOADS/local/lib/libffi.a"
 if [ ! -f $DOWNLOADS/local/lib/libffi.dylib ]; then
@@ -160,16 +150,17 @@ if [ ! -f $DOWNLOADS/local/lib/libffi.dylib ]; then
     echo "libffi lib not found. Installing"
     if [ ! -f $DOWNLOADS/libffi-3.2.1.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "ftp://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz" -o "libffi-3.2.1.tar.gz"
+      /usr/bin/curl -L "ftp://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz" -o "libffi-3.2.1.tar.gz"
     fi
     cd $DOWNLOADS
     tar -xvf libffi-3.2.1.tar.gz
     cd $DOWNLOADS/libffi-3.2.1
-    ./configure --prefix=$DOWNLOADS/local/
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/
     make
     make install
   fi
 fi
+
 
 echo "Checking pcre at $DOWNLOADS/local/lib/libpcre.dylib/.so"
 if [ ! -f $DOWNLOADS/local/lib/libpcre.dylib ]; then
@@ -177,7 +168,7 @@ if [ ! -f $DOWNLOADS/local/lib/libpcre.dylib ]; then
     echo "pcre lib not found. Installing"
     if [ ! -f $DOWNLOADS/pcre-8.41.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "https://ftp.pcre.org/pub/pcre/pcre-8.41.tar.gz" -o "pcre-8.41.tar.gz"
+      /usr/bin/curl -L "https://ftp.pcre.org/pub/pcre/pcre-8.41.tar.gz" -o "pcre-8.41.tar.gz"
     fi
     cd $DOWNLOADS
     tar -xvf pcre-8.41.tar.gz
@@ -194,11 +185,13 @@ if [ ! -f $DOWNLOADS/local/lib/libz.dylib ]; then
     echo "zlib lib not found. Installing"
     if [ ! -f $DOWNLOADS/zlib-1.2.11.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "http://www.zlib.net/zlib-1.2.11.tar.gz" -o "zlib-1.2.11.tar.gz"
+      /usr/bin/curl -L "http://www.zlib.net/zlib-1.2.11.tar.gz" -o "zlib-1.2.11.tar.gz"
     fi
     cd $DOWNLOADS
     tar -xvf zlib-1.2.11.tar.gz
     cd $DOWNLOADS/zlib-1.2.11
+    # CHOST will put this configure script in cross compile mode
+    export CHOST=mipsel-linux-gnu
     ./configure --prefix=$DOWNLOADS/local/
     make
     make install
@@ -211,16 +204,17 @@ if [ ! -f $DOWNLOADS/local/lib/libiconv.dylib ]; then
     echo "iconv lib not found. Installing"
     if [ ! -f $DOWNLOADS/libiconv-1.15.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "https://ftp.gnu.org/gnu/libiconv/libiconv-1.15.tar.gz" -o "libiconv-1.15.tar.gz"
+      /usr/bin/curl -L "https://ftp.gnu.org/gnu/libiconv/libiconv-1.15.tar.gz" -o "libiconv-1.15.tar.gz"
     fi
     cd $DOWNLOADS
     tar -xvf libiconv-1.15.tar.gz
     cd $DOWNLOADS/libiconv-1.15
-    ./configure --prefix=$DOWNLOADS/local/
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/
     make
     make install
   fi
 fi
+
 
 if [[ $PLATFORM == 'linux' ]]; then
   echo "Checking util-linux at $DOWNLOADS/local/lib/libmount.dylib/.so"
@@ -229,24 +223,25 @@ if [[ $PLATFORM == 'linux' ]]; then
       echo "libmount lib not found. Installing"
       if [ ! -f $DOWNLOADS/util-linux-2.31.tar.gz ]; then
         cd $DOWNLOADS
-        curl -L "https://www.kernel.org/pub/linux/utils/util-linux/v2.31/util-linux-2.31.tar.gz" -o "util-linux-2.31.tar.gz"
+        /usr/bin/curl -L "https://www.kernel.org/pub/linux/utils/util-linux/v2.31/util-linux-2.31.tar.gz" -o "util-linux-2.31.tar.gz"
       fi
       cd $DOWNLOADS
       tar -xvf util-linux-2.31.tar.gz
       cd $DOWNLOADS/util-linux-2.31
-      ./configure --prefix=$DOWNLOADS/local/ --disable-all-programs --enable-libmount --enable-libblkid
+      ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/ --disable-all-programs --enable-libmount --enable-libblkid
       make
       make install
     fi
   fi
 fi
 
+
 #-------------------------install program m4 --------------------------------------------------------------------
   if [ ! -f $DOWNLOADS/local/bin/m4 ]; then
     echo "m4 not found. Installing"
     if [ ! -f $DOWNLOADS/m4-1.4.10.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "http://ftpmirror.gnu.org/m4/m4-1.4.10.tar.gz" -o "m4-1.4.10.tar.xz"
+      /usr/bin/curl -L "http://ftpmirror.gnu.org/m4/m4-1.4.10.tar.gz" -o "m4-1.4.10.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf m4-1.4.10.tar.xz
@@ -261,13 +256,13 @@ fi
     if [ ! -f $DOWNLOADS/local/lib/libfl.2.so ]; then
         if [ ! -f $DOWNLOADS/local/lib/libfl.so ]; then
           echo "flex not found. Installing"
-          if [ ! -f $DOWNLOADS/flex-2.6.3.tar.gz ]; then
+          if [ ! -f $DOWNLOADS/flex-2.6.4.tar.gz ]; then
             cd $DOWNLOADS
-            curl -L "https://github.com/westes/flex/releases/download/v2.6.3/flex-2.6.3.tar.gz" -o "flex-2.6.3.tar.xz"
+            /usr/bin/curl -L "https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz" -o "flex-2.6.4.tar.xz"
           fi
           cd $DOWNLOADS
-          tar -xvf flex-2.6.3.tar.xz
-          cd $DOWNLOADS/flex-2.6.3
+          tar -xvf flex-2.6.4.tar.xz
+          cd $DOWNLOADS/flex-2.6.4
           ./configure --prefix=$DOWNLOADS/local  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
           make
           make install
@@ -275,12 +270,11 @@ fi
   fi
 fi
 #-----------------------liby.a----------------------------
-if [[ $PLATFORM != 'mac' || $KERNEL_VERSION < 17 ]]; then
  if [ ! -f $DOWNLOADS/local/lib/liby.a ]; then
     echo "bison not found. Installing"
     if [ ! -f $DOWNLOADS/bison-2.3.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz" -o "bison-3.0.4.tar.xz"
+      /usr/bin/curl -L "http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz" -o "bison-3.0.4.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf bison-3.0.4.tar.xz
@@ -289,7 +283,7 @@ if [[ $PLATFORM != 'mac' || $KERNEL_VERSION < 17 ]]; then
     make
     make install
  fi
-fi
+ 
 # --------- libltdl------------------------------------------
  if [ ! -f $DOWNLOADS/local/lib/libltdl.7.dylib ]; then
    if [ ! -f $DOWNLOADS/local/lib/libltdl.7.so ]; then
@@ -297,12 +291,12 @@ fi
       echo "libtools not found. Installing"
       if [ ! -f $DOWNLOADS/libtool-2.4.6.tar.gz ]; then
         cd $DOWNLOADS
-        curl -L "http://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz" -o "libtool-2.4.6.tar.xz"
+        /usr/bin/curl -L "http://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz" -o "libtool-2.4.6.tar.xz"
       fi
       cd $DOWNLOADS
       tar -xvf libtool-2.4.6.tar.xz
       cd $DOWNLOADS/libtool-2.4.6
-      ./configure --prefix=$DOWNLOADS/local  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+      ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
       make
       make install
     fi
@@ -321,13 +315,14 @@ if [ ! -f $DOWNLOADS/local/lib/libglib-2.0.dylib ]; then
   echo "glib lib not found. Installing"
    if [ ! -f $DOWNLOADS/glib-2.54.2.tar.xz ]; then
      cd $DOWNLOADS
-     curl -L "http://ftp.gnome.org/pub/gnome/sources/glib/2.54/glib-2.54.2.tar.xz" -o "glib-2.54.2.tar.xz"
+     /usr/bin/curl -L "http://ftp.gnome.org/pub/gnome/sources/glib/2.54/glib-2.54.2.tar.xz" -o "glib-2.54.2.tar.xz"
    fi
    cd $DOWNLOADS
    tar -xvf glib-2.54.2.tar.xz
    cd $DOWNLOADS/glib-2.54.2
-  # autoreconf -f -i
-   ./configure --prefix=$DOWNLOADS/local/ --with-pcre --with-libiconv
+   # autoreconf -f -i
+   export CONFIG_SITE=/home/ubuntu/Downloads/amazon-kinesis-video-streams-producer-sdk-cpp/kinesis-video-native-build/downloads/glib-2.54.2/config.mipsel-linux-gnu
+   ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local/ --with-pcre --with-libiconv
    make
    make install
  fi
@@ -339,12 +334,12 @@ if [ ! -f $DOWNLOADS/local/lib/libgtest.dylib ]; then
     echo "gtest lib not found. Installing"
     if [ ! -f $DOWNLOADS/google-test-1.8.0.gz ]; then
       cd $DOWNLOADS
-      curl -L "https://github.com/google/googletest/archive/release-1.8.0.tar.gz" -o "google-test-1.8.0.gz"
+      /usr/bin/curl -L "https://github.com/google/googletest/archive/release-1.8.0.tar.gz" -o "google-test-1.8.0.gz"
     fi
     cd $DOWNLOADS
     tar -xvf google-test-1.8.0.gz
     cd googletest-release-1.8.0/googletest
-    cmake -DBUILD_SHARED_LIBS=ON .
+    cmake -D CMAKE_C_COMPILER="/usr/bin/mipsel-linux-gnu-gcc" -D CMAKE_CXX_COMPILER="/usr/bin/mipsel-linux-gnu-g++" -DBUILD_SHARED_LIBS=ON .
     make
     mkdir -p $DOWNLOADS/local/lib
     cp -r ./include $DOWNLOADS/local
@@ -353,13 +348,11 @@ if [ ! -f $DOWNLOADS/local/lib/libgtest.dylib ]; then
 fi
 
 #-------------------autoconf, autoheader, autom4te, autoreconf, autoscan, autoupdate, and ifnames------------------
-
-if [[ $PLATFORM != 'mac' || $KERNEL_VERSION < 17 ]]; then
  if [ ! -f $DOWNLOADS/local/bin/autoconf ]; then
     echo "autoconf not found. Installing"
     if [ ! -f $DOWNLOADS/autoconf-2.69.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "http://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz" -o "autoconf-2.69.tar.xz"
+      /usr/bin/curl -L "http://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz" -o "autoconf-2.69.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf autoconf-2.69.tar.xz
@@ -368,17 +361,17 @@ if [[ $PLATFORM != 'mac' || $KERNEL_VERSION < 17 ]]; then
     make
     make install
  fi
-fi
+
 #--------aclocal, aclocal-1.15 (hard linked with aclocal), automake, and automake-1.15 (hard linked with automake)--
   if [ ! -f $DOWNLOADS/local/bin/automake ]; then
     echo "automake not found. Installing"
-    if [ ! -f $DOWNLOADS/automake-1.15.1.tar.gz ]; then
+    if [ ! -f $DOWNLOADS/automake-1.15.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "https://ftp.gnu.org/gnu/automake/automake-1.15.1.tar.gz" -o "automake-1.15.1.tar.xz"
+      /usr/bin/curl -L "https://ftp.gnu.org/gnu/automake/automake-1.15.tar.gz" -o "automake-1.15.tar.xz"
     fi
     cd $DOWNLOADS
-    tar -xvf automake-1.15.1.tar.xz
-    cd $DOWNLOADS/automake-1.15.1
+    tar -xvf automake-1.15.tar.xz
+    cd $DOWNLOADS/automake-1.15
     ./configure --prefix=$DOWNLOADS/local  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
@@ -393,7 +386,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstreamer-1.0.dylib ]; then
     export ARCHFLAGS="-arch x86_64"
     if [ ! -f $DOWNLOADS/gstreamer-1.12.3.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-1.12.3.tar.xz" -o "gstreamer-1.12.3.tar.xz"
+      /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-1.12.3.tar.xz" -o "gstreamer-1.12.3.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf gstreamer-1.12.3.tar.xz
@@ -405,7 +398,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstreamer-1.0.dylib ]; then
       fi
     done
 
-    ./configure --prefix=$DOWNLOADS/local --disable-gtk-doc -- CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local --disable-gtk-doc -- CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
   fi
@@ -417,7 +410,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstvideo-1.0.dylib ]; then
     echo "gst-plugin-base not found. Installing"
     if [ ! -f $DOWNLOADS/gst-plugins-base-1.12.3.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.12.3.tar.xz" -o "gst-plugins-base-1.12.3.tar.xz"
+      /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.12.3.tar.xz" -o "gst-plugins-base-1.12.3.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf gst-plugins-base-1.12.3.tar.xz
@@ -429,7 +422,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstvideo-1.0.dylib ]; then
       fi
     done
 
-    ./configure --prefix=$DOWNLOADS/local --disable-gtk-doc -- CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local --disable-gtk-doc -- CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
   fi
@@ -440,7 +433,7 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstavi.la ]; then
   echo "gst-plugin-good not found. Installing"
   if [ ! -f $DOWNLOADS/gst-plugins-good-1.12.3.tar.xz ]; then
     cd $DOWNLOADS
-    curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.12.3.tar.xz" -o "gst-plugins-good-1.12.3.tar.xz"
+    /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.12.3.tar.xz" -o "gst-plugins-good-1.12.3.tar.xz"
   fi
   cd $DOWNLOADS
   tar -xvf gst-plugins-good-1.12.3.tar.xz
@@ -452,10 +445,11 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstavi.la ]; then
     fi
   done
 
-  ./configure --prefix=$DOWNLOADS/local --disable-examples --disable-x --disable-gtk-doc  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+  ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local --disable-examples --disable-x --disable-gtk-doc  CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
   make
   make install
 fi
+
 
 echo "Checking gst-plugin-bad at $DOWNLOADS/local/lib/libgstbadvideo-1.0.dylib/.so"
 if [ ! -f $DOWNLOADS/local/lib/libgstbadvideo-1.0.dylib ]; then
@@ -463,7 +457,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstbadvideo-1.0.dylib ]; then
     echo "gst-plugin-bad not found. Installing"
     if [ ! -f $DOWNLOADS/gst-plugins-bad-1.12.3.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-1.12.3.tar.xz" -o "gst-plugins-bad-1.12.3.tar.xz"
+      /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-1.12.3.tar.xz" -o "gst-plugins-bad-1.12.3.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf gst-plugins-bad-1.12.3.tar.xz
@@ -475,7 +469,7 @@ if [ ! -f $DOWNLOADS/local/lib/libgstbadvideo-1.0.dylib ]; then
       fi
     done
 
-    ./configure --prefix=$DOWNLOADS/local --disable-gtk-doc --disable-wayland  --disable-opencv --disable-ldap --disable-rtsp --without-zlib --without-ssl --disable-yadif --disable-sdl --disable-debug --disable-dependency-tracking LIBTOOL="$DOWNLOADS/gst-plugins-bad-1.12.3/libtool --tag=CC" CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local --disable-gtk-doc --disable-wayland  --disable-opencv --disable-ldap --disable-rtsp --without-zlib --without-ssl --disable-yadif --disable-sdl --disable-debug --disable-dependency-tracking LIBTOOL="$DOWNLOADS/gst-plugins-bad-1.12.3/libtool --tag=CC" CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
   fi
@@ -487,7 +481,7 @@ if [ ! -f $DOWNLOADS/local/lib/libx264.dylib ]; then
     echo "gst-plugin-ugly not found. Installing"
     if [ ! -f $DOWNLOADS/x264-snapshot-20171204-2245-stable.tar.bz2 ]; then
       cd $DOWNLOADS
-      curl -L "https://download.videolan.org/x264/snapshots/x264-snapshot-20171204-2245-stable.tar.bz2" -o "x264-snapshot-20171204-2245-stable.tar.bz2"
+      /usr/bin/curl -L "https://download.videolan.org/x264/snapshots/x264-snapshot-20171204-2245-stable.tar.bz2" -o "x264-snapshot-20171204-2245-stable.tar.bz2"
     fi
     cd $DOWNLOADS
     tar -xvf x264-snapshot-20171204-2245-stable.tar.bz2
@@ -499,7 +493,7 @@ if [ ! -f $DOWNLOADS/local/lib/libx264.dylib ]; then
       fi
     done
 
-    ./configure --prefix=$DOWNLOADS/local --enable-shared --disable-cli --disable-asm
+    ./configure --cross-prefix=mipsel-linux-gnu- --host=mipsel-linux-gnu  --prefix=$DOWNLOADS/local --enable-shared --disable-cli --disable-asm
     make
     make install
   fi
@@ -511,7 +505,7 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstx264.dylib ]; then
     echo "gst-plugin-ugly not found. Installing"
     if [ ! -f $DOWNLOADS/gst-plugins-ugly-1.12.3.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-1.12.3.tar.xz" -o "gst-plugins-ugly-1.12.3.tar.xz"
+      /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-1.12.3.tar.xz" -o "gst-plugins-ugly-1.12.3.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf gst-plugins-ugly-1.12.3.tar.xz
@@ -523,7 +517,7 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstx264.dylib ]; then
       fi
     done
 
-    ./configure --prefix=$DOWNLOADS/local --disable-gtk-doc CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local --disable-gtk-doc CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
   fi
@@ -534,7 +528,7 @@ echo "Checking for yasm"
    echo "yasm-1.3.0.tar.gz not found. Installing"
     if [ ! -f $DOWNLOADS/yasm-1.3.0.tar.gz ]; then
       cd $DOWNLOADS
-      curl -L "https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz" -o "yasm-1.3.0.tar.gz"
+      /usr/bin/curl -L "https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz" -o "yasm-1.3.0.tar.gz"
       cd $DOWNLOADS
     fi
     cd $DOWNLOADS
@@ -558,7 +552,7 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstlibav.dylib ]; then
     echo "gst-libav not found. Installing"
     if [ ! -f $DOWNLOADS/gst-libav-1.12.4.tar.xz ]; then
       cd $DOWNLOADS
-      curl -L "https://gstreamer.freedesktop.org/src/gst-libav/gst-libav-1.12.4.tar.xz" -o "gst-libav-1.12.4.tar.xz"
+      /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-libav/gst-libav-1.12.4.tar.xz" -o "gst-libav-1.12.4.tar.xz"
     fi
     cd $DOWNLOADS
     tar -xvf gst-libav-1.12.4.tar.xz
@@ -569,7 +563,7 @@ if [ ! -f $DOWNLOADS/local/lib/gstreamer-1.0/libgstlibav.dylib ]; then
         (cd "$d" && ./"${DOWNLOADS}"/local/bin/autoreconf -f -i);
       fi
     done
-    ./configure --prefix=$DOWNLOADS/local CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
+    ./configure --host=mipsel-linux-gnu --build=x86_64-linux-gnu --prefix=$DOWNLOADS/local CFLAGS="-I$DOWNLOADS/local/include" LDFLAGS="-L$DOWNLOADS/local/lib"
     make
     make install
 fi
@@ -586,7 +580,7 @@ if [[ $sys_info =~ ^arm ]]; then
       echo "gst-omx not found. Installing"
       if [ ! -f $DOWNLOADS/gst-omx-1.10.4.tar.xz ]; then
         cd $DOWNLOADS
-        curl -L "https://gstreamer.freedesktop.org/src/gst-omx/gst-omx-1.10.4.tar.xz" -o "gst-omx-1.10.4.tar.xz"
+        /usr/bin/curl -L "https://gstreamer.freedesktop.org/src/gst-omx/gst-omx-1.10.4.tar.xz" -o "gst-omx-1.10.4.tar.xz"
       fi
       cd $DOWNLOADS
       tar -xvf gst-omx-1.10.4.tar.xz
@@ -611,8 +605,10 @@ export CMAKE_PREFIX_PATH="$DOWNLOADS/local"
 
 ## --------- build kinesis video ---------
 cd $KINESIS_VIDEO_ROOT
-cmake CMakeLists.txt
-make
+
+
+#cmake -D CMAKE_C_COMPILER="/usr/bin/mipsel-linux-gnu-gcc" -D CMAKE_CXX_COMPILER="/usr/bin/mipsel-linux-gnu-g++" CMakeLists.txt
+#make
 
 echo "**********************************************************"
 echo Success!!!
